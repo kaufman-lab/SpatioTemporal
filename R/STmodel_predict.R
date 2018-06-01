@@ -129,7 +129,7 @@
 ##' 
 ##' @example Rd_examples/Ex_predict_STmodel.R
 ##' 
-##' @author Johan Lindström
+##' @author Johan Lindstr?m
 ##' 
 ##' @family STmodel methods
 ##' @family predictSTmodel methods
@@ -732,8 +732,6 @@ predict.STmodel <- function(object, x, STdata=NULL, Nmax=1000, only.pars=FALSE,
   ##cross distance for the nu coordinates
   cross.D.nu <- crossDist(loc.unobs.nu, loc.obs.nu)
 
-  ## sigma.B.C * F'
-  sigma.B.C.tF <- sigma.B.C %*% t(Fobs)
   
   ##now we need to split the conditional expectation into parts to
   ##reduce the memory footprint
@@ -758,7 +756,8 @@ predict.STmodel <- function(object, x, STdata=NULL, Nmax=1000, only.pars=FALSE,
     T1.order <- order(T1.Ind)
     
     ##create full cross-covariance matrix for all the observations
-    sigma.B.full.C <- as.matrix(Funobs[Ind,,drop=FALSE] %*% sigma.B.C.tF)
+    sigma.B.full.C <- Funobs[Ind,,drop=FALSE] %*% sigma.B.C
+    sigma.B.full.C <- as.matrix(sigma.B.full.C%*%t(Fobs))
     ##parameter order is sill, nugget, range (always predict with nugget=0)
     sigma.nu.C <- makeSigmaNu(cov.pars.nu$pars, dist = cross.D.nu,
                               type = object$cov.nu$covf, nugget = 0,
@@ -1018,7 +1017,7 @@ predict.STmodel <- function(object, x, STdata=NULL, Nmax=1000, only.pars=FALSE,
 ##' @param ... Ignored additional arguments.
 ##' @return Nothing
 ##'
-##' @author Johan Lindström
+##' @author Johan Lindstr?m
 ##'
 ##' @examples
 ##'   ##load data
@@ -1156,7 +1155,7 @@ print.predictSTmodel <- function(x, ...){
 ##'
 ##' @example Rd_examples/Ex_plot_predictSTmodel.R
 ##'
-##' @author Johan Lindström
+##' @author Johan Lindstr?m
 ##' 
 ##' @family predictSTmodel methods
 ##' @method plot predictSTmodel
