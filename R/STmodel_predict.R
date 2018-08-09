@@ -141,6 +141,19 @@ predict.STmodel <- function(object, x, STdata=NULL, Nmax=1000, only.pars=FALSE,
                             pred.covar=FALSE, beta.covar=FALSE,
                             combine.data=FALSE, type="p", LTA=FALSE, 
                             transform=c("none","unbiased","mspe"), ...){
+  
+    ##error check added by Michael Young 8/9/2018
+  ##make sure that STdata date range is the same as the modeling date range.
+  ##this is incredibly important--if you try to make predictions to a subset of the date range used in modeling, 
+    #the resulting predictions have the wrong temporal trends
+    ##predicting to a subset of the modeling range doesn't seem to work correctly.
+    #it's easier to just require the full range of dates be predicted to rather than try to figure out how to fix this.
+  
+  ##STdata should have a trend column regardless of whether it's an object of class STdata or ST model
+
+    stopifnot(!is.null(object$trend$date))
+    stopifnot(identical(object$trend$date,  STdata$trend$date))
+  
 ##################################
 ### INITIAL SETUP AND CHECKING ###
   ##check class belongings
