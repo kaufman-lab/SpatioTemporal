@@ -135,7 +135,7 @@ internalComputeLTA <- function(LTA, EX, T, V=NULL, V.pred=NULL,
   
   for(j in 1:length(LTA)){
     Ind.LTA <- T %in% LTA[[j]]
-    LTA.tmp.res <- colMeans(EX[Ind.LTA,])
+    LTA.tmp.res <- colMeans(EX[Ind.LTA,,drop = FALSE])
     
     if( !is.null(V) ){
       LTA.tmp.res <- c(LTA.tmp.res,
