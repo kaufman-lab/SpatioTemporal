@@ -264,7 +264,7 @@ predict.STmodel <- function(object, x, STdata=NULL, Nmax=1000, only.pars=FALSE,
       }
       ##and fix the trend (right no of trends, names and dates)
       suppressMessages(STdata <- updateTrend(STdata, fnc=object$trend.fnc,
-                                             extra.dates=object$obs$date))
+                                             extra.dates=object$trend$date))
       
       ##since we're not using covariances for the prediction locations
       ##(specified seperately in nugget.unobs), we just pick a simple covariance
