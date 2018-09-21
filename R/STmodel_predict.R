@@ -152,7 +152,7 @@ predict.STmodel <- function(object, x, STdata=NULL, Nmax=1000, only.pars=FALSE,
   ##STdata should have a trend column regardless of whether it's an object of class STdata or ST model
 
     stopifnot(!is.null(object$trend$date))
-    stopifnot(identical(object$trend$date,  STdata$trend$date))
+    if(!is.null(STdata)){ stopifnot(identical(object$trend$date,  STdata$trend$date))}
   
 ##################################
 ### INITIAL SETUP AND CHECKING ###
