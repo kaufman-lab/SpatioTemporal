@@ -142,9 +142,10 @@ predict.STmodel <- function(object, x, STdata=NULL, Nmax=1000, only.pars=FALSE,
                             combine.data=FALSE, type="p", LTA=FALSE, 
                             transform=c("none","unbiased","mspe"), ...){
 
+
     if(is.null(object$trend$date)){
       stop("Trend within model object (object$trend) must contain more than 0 dates.")} 
-  
+
 ##################################
 ### INITIAL SETUP AND CHECKING ###
   ##check class belongings
