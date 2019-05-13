@@ -49,9 +49,9 @@
 ##' @references
 ##' M. Fuentes, P. Guttorp, and P. D. Sampson. (2006) Using Transforms to
 ##'  Analyze Space-Time Processes in Statistical methods for spatio-temporal
-##'  systems (B. Finkenstädt, L. Held, V. Isham eds.) 77-150
+##'  systems (B. Finkenst?dt, L. Held, V. Isham eds.) 77-150
 ##' 
-##' @author Paul D. Sampson and Johan Lindström
+##' @author Paul D. Sampson and Johan Lindstr?m
 ##'
 ##' @example Rd_examples/Ex_SVDmiss.R
 ##' @family SVD for missing data
@@ -179,9 +179,9 @@ SVDmiss <- function(X, niter=25, ncomp=min(4,dim(X)[2]), conv.reldiff=0.001)
 ##' @references
 ##' M. Fuentes, P. Guttorp, and P. D. Sampson. (2006) Using Transforms to
 ##'  Analyze Space-Time Processes in Statistical methods for spatio-temporal
-##'  systems (B. Finkenstädt, L. Held, V. Isham eds.) 77-150
+##'  systems (B. Finkenst?dt, L. Held, V. Isham eds.) 77-150
 ##' 
-##' @author Paul D. Sampson and Johan Lindström
+##' @author Paul D. Sampson and Johan Lindstr?m
 ##'
 ##' @example Rd_examples/Ex_SVDsmooth.R
 ##' @family SVD for missing data
@@ -189,8 +189,7 @@ SVDmiss <- function(X, niter=25, ncomp=min(4,dim(X)[2]), conv.reldiff=0.001)
 ##' @family SVDcv methods
 ##' @export
 SVDsmooth <- function(X, n.basis=min(2,dim(X)[2]), date.ind=NULL, scale=TRUE,
-                      niter=100, conv.reldiff=0.001, df=NULL, spar=NULL,
-                      fnc=FALSE){
+                      niter=100, conv.reldiff=0.001,smooth=TRUE,fnc=FALSE,...){
 
   ##date.ind contains NA/missing, use rownames of X
   if( missing(date.ind) || is.null(date.ind) || any(is.na(date.ind)) ){
@@ -227,27 +226,33 @@ SVDsmooth <- function(X, n.basis=min(2,dim(X)[2]), date.ind=NULL, scale=TRUE,
 
   ##create function that compute trend matrix
   ##first compute splines for each basis-set
+  if(smooth){
   spline <- lapply(1:n.basis,
                    function(j){
-                     if( is.null(df) && is.null(spar) ){
-                       return(smooth.spline(date.ind[Irow], X.svd$svd$u[,j]))
-                     }else{
-                       return(smooth.spline(date.ind[Irow], X.svd$svd$u[,j],
-                                            df=df, spar=spar))
-                     }
+                       return(smooth.spline(date.ind[Irow], X.svd$svd$u[,j],...))
                    })
+  
   ##second compute mean and scaling for each spline
   scale.spline <- lapply(spline, function(x){ c(mean(x$y), sd(x$y)) })
-  ##define the function
+  }
+
+##define the function
   trend.fnc <- function(x=date.ind){
     X.comps <- matrix(NA, length(x), length(spline))
     for(i in 1:length(spline)){
+      if(smooth){
       ##scale components to unit variance and zero mean
       X.comps[,i] <- scale(predict(spline[[i]], as.double(x))$y,
                            center=scale.spline[[i]][1],
                            scale=scale.spline[[i]][2])
-      ##Ensure that components have alternating sign
+      #Ensure that components have alternating sign
       X.comps[,i] <- (-1)^i*X.comps[,i]*sign(X.comps[1,i])
+      } else{
+        ##scale components to unit variance and zero mean
+        X.comps[,i] <- scale(X.svd$svd$u[,i])
+        #Ensure that components have alternating sign
+        X.comps[,i] <- (-1)^i*X.comps[,i]*sign(X.comps[1,i])
+      }
     }
     ##add names
     rownames(X.comps) <- as.character(x)
@@ -394,7 +399,7 @@ SVDsmoothCV <- function(X, n.basis, ...){
 ##'   \item{trend.fnc,trend.fnc.cv}{Functions that produce the content of the above
 ##'        data.frames, see \code{\link{SVDsmooth}}.}
 ##' 
-##' @author Johan Lindström and Paul D. Sampson
+##' @author Johan Lindstr?m and Paul D. Sampson
 ##' 
 ##' @example Rd_examples/Ex_calcSmoothTrends.R
 ##' @family SVD for missing data
@@ -402,7 +407,7 @@ SVDsmoothCV <- function(X, n.basis, ...){
 ##' @export
 calcSmoothTrends <- function(STdata=NULL, obs=STdata$obs$obs,
                              date=STdata$obs$date, ID=STdata$obs$ID,
-                             subset=NULL, extra.dates=NULL, n.basis=2,
+                             subset=NULL, extra.dates=NULL, smooth=TRUE,n.basis=2,
                              cv=FALSE, ...){
   ##add extra dates
   date <- c(date, extra.dates)
@@ -420,7 +425,7 @@ calcSmoothTrends <- function(STdata=NULL, obs=STdata$obs$obs,
     return(x)
   }
   ##now let's do SVD
-  data.comps.fnc <- SVDsmooth(data, n.basis, fnc=TRUE, ...)
+  data.comps.fnc <- SVDsmooth(data, n.basis,smooth=smooth,fnc=TRUE, ...)
   data.comps <- extractTrend(data.comps.fnc())
   ##and cross-validation
   if(cv){
@@ -464,7 +469,7 @@ calcSmoothTrends <- function(STdata=NULL, obs=STdata$obs$obs,
 ##' @examples
 ##'   ##See SVDsmooth example
 ##' 
-##' @author Johan Lindström
+##' @author Johan Lindstr?m
 ##' 
 ##' @family SVDcv methods
 ##' @family SVD for missing data
@@ -549,7 +554,7 @@ boxplot.SVDcv <- function(x, y=c("all","MSE","R2","AIC","BIC"), ...){
 ##' @examples
 ##'   ##See SVDsmooth example
 ##' 
-##' @author Johan Lindström
+##' @author Johan Lindstr?m
 ##' 
 ##' @family SVDcv methods
 ##' @family SVD for missing data
@@ -622,7 +627,7 @@ summary.SVDcv <- function(object, ...){
 ##' 
 ##' @example Rd_examples/Ex_updateTrend.R
 ##' 
-##' @author Johan Lindström
+##' @author Johan Lindstr?m
 ##' @family STdata functions
 ##' @family SVD for missing data
 ##' @method updateTrend STdata
