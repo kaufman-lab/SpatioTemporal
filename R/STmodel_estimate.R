@@ -11,7 +11,7 @@
 ##' profile maximum likelihood or restricted maximum likelihood (REML). The
 ##' function uses the \emph{L-BFGS-B} method in \code{\link[stats:optim]{optim}}
 ##' to maximise \code{\link{loglikeST}}.
-##' 
+##'
 ##' The starting point(s) for the optimisation can either contain both
 ##' regression parameters and log-covariances parameters for a total of
 ##' \code{loglikeSTdim(object)$nparam} parameters or only contain the
@@ -21,7 +21,7 @@
 ##' are dropped; if they are needed but not given they are inferred through a
 ##' generalised least squares (GLS) computation, obtained by calling
 ##' \code{\link{predict.STmodel}}.
-##' 
+##'
 ##' If multiple starting points are used this function returns all optimisation
 ##' results, along with an indication of the best result. The best result is
 ##' determined by first evaluating which of the optimisations have converged.
@@ -31,10 +31,10 @@
 ##' i.e. \code{all(eigen(hessian)$value < -1e-10)}. \cr
 ##' Among the converged optimisations the one with the highest log-likelihood
 ##' value is then selected as the best result.
-##' 
+##'
 ##' If none of the optimisations have converged the result with the highest
 ##' log-likelihood value is selected as the best result.
-##' 
+##'
 ##' Most of the elements in \code{res.best} (and in \code{res.all[[i]]}) are
 ##' obtained from \code{\link[stats:optim]{optim}}. The following is a
 ##' brief description:
@@ -62,7 +62,7 @@
 ##' }
 ##'
 ##' @title Estimation of the Spatio-Temporal Model
-##' 
+##'
 ##' @param object \code{STmodel} object for which to estimate parameters.
 ##' @param x Vector or matrix of starting point(s) for the optimisation. A
 ##'   vector will be treated as a single starting point. If \code{x} is a matrix
@@ -89,7 +89,7 @@
 ##'   \code{\link[stats:optim]{optim}} fails to converge; can
 ##'   sometimes resolve issues with L-BFGS-B line search.
 ##' @param ... Ignored additional arguments.
-##' 
+##'
 ##' @return \code{estimateSTmodel} object containing:
 ##'   \item{res.best}{A list containing the best optimisation result; elements
 ##'                   are described below. Selection of the best result is described
@@ -100,10 +100,10 @@
 ##'                  starting point.}
 ##'   \item{summary}{A list with parameter estimates and convergence information
 ##'                  for all starting points.}
-##' 
+##'
 ##' @example Rd_examples/Ex_estimate_STmodel.R
-##' 
-##' @author Johan Lindström
+##'
+##' @author Johan Lindstr?m
 ##' @family STmodel methods
 ##' @family estimateSTmodel methods
 ##' @method estimate STmodel
@@ -115,15 +115,15 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
                              restart=0, ...){
   ##check class belonging
   stCheckClass(object, "STmodel", name="object")
-  
+
   ##get size of the models
   dimensions <- loglikeSTdim(object)
-  
+
   ##ensure lower case
-  type <- tolower(type) 
+  type <- tolower(type)
   ##first check that type is valid
   stCheckType(type)
-  
+
   ##Second check the input x
   x <- as.matrix(x)
   ##if x has length one we need to construct a matrix of initial values
@@ -138,7 +138,7 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
 
   ##Default values for control
   control <- defaultList(control, eval(formals(estimate.STmodel)$control) )
-                                    
+
   ##define local version of gradient function, fixing h and diff.type
   loglikeSTGrad.loc <- function(x, STmodel, type, x.fixed){
     loglikeSTGrad(x, STmodel, type, x.fixed, h=h, diff.type=diff.type)
@@ -157,7 +157,7 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
     stop( paste("log-likelihood fails at first starting point with:\n",
                 err[[1]]) )
   }
-  
+
   ##ensure that we are doing maximisation
   control$fnscale <- -1
   ##loop over starting values
@@ -173,23 +173,34 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
                              STmodel=object, type=type, x.fixed=x.fixed,
                              method=method, control=control, hessian=TRUE,
                              lower=lower, upper=upper), silent=TRUE)
+
+
       if( all( !is.na(res[[i]]) ) ){
         ##optim done, let's see if we've converged and update starting point
+
         x.start <- res[[i]]$par
         ##compute convergence criteria
         conv[i] <- (res[[i]]$convergence==0 &&
                     all(eigen(res[[i]]$hessian)$value < -1e-10))
-      }else{
+      } else{
         ##error occured in optim, break
         break
       }
+      ##add standard deviations
+
       ##increase counter
       i.restart <- i.restart+1
     }##while(i.restart<=restart && !optim.done)
+    par.sd <- try(sqrt(-diag(solve(res[[i]]$hessian))) )
+    if(!is.numeric(par.sd)){
+      res[[i]]$conv <- FALSE
+      message("Hessian not positive definite - trying next starting value.")
+
+      } else{
     if( control$trace!=0 ){
       message("") ##spacing
     }
-    
+
     ##has optimisation finished with out failing?
     if( all( !is.na(res[[i]]) ) ){
       ##extract ML-value
@@ -205,9 +216,8 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
                                      fixed=double(dimensions$nparam),
                                      init=double(dimensions$nparam),
                                      tstat=double(dimensions$nparam))
-     
-      ##add standard deviations
-      suppressWarnings( par.sd <- sqrt(-diag(solve(res[[i]]$hessian))) )
+
+
       ##initial value
       if( type!="f" ){
         par.type <- "par.cov"
@@ -220,7 +230,7 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
       res[[i]][[par.type]]$par[is.na(x.fixed)] <- res[[i]]$par
       ##standard error
       res[[i]][[par.type]]$sd[is.na(x.fixed)] <- par.sd
-      
+
       if( type!="f" ){
         ##compute regression parameters
         tmp <- predict(object, res[[i]]$par.cov$par, only.pars=TRUE,
@@ -238,7 +248,7 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
       ##t-statistic
       res[[i]]$par.cov$tstat <- res[[i]]$par.cov$par / res[[i]]$par.cov$sd
       res[[i]]$par.all$tstat <- res[[i]]$par.all$par / res[[i]]$par.all$sd
-      
+
       ##add names to the variables.
       rownames(res[[i]]$par.all) <- loglikeSTnames(object, all=TRUE)
       rownames(res[[i]]$par.cov) <- loglikeSTnames(object, all=FALSE)
@@ -249,7 +259,7 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
         names(res[[i]]$par) <- loglikeSTnames(object, all=TRUE)[is.na(x.fixed)]
       }
     }##if(all(!is.na(res[[i]])))
-  }##for(i in 1:dim(x)[2])
+  }}##for(i in 1:dim(x)[2])
 
   if( all(is.na(res)) ){
     stop("All optimisations failed, consider trying different starting values.")
@@ -270,7 +280,7 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
   ##add names to the summaries
   rownames(par.all) <- loglikeSTnames(object, all=TRUE)
   rownames(par.cov) <- loglikeSTnames(object, all=FALSE)
-  
+
   ##pick out the converged option with the best value
   Ind.overall <- which.max(value)
   if(any(conv==TRUE)){
@@ -280,10 +290,10 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
   ##extract the best value
   Ind <- which.max(value)
   res.best <- res[[Ind]]
-  
+
   ##collect status results
   summary <- list(status=status, par.all=par.all, par.cov=par.cov, x.fixed=x.fixed)
-  
+
   if(hessian.all==TRUE){
     if(type!="f"){
       x.fixed <- res.best$par.all$fixed
@@ -301,11 +311,11 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
       res.best$hessian.all <- res.best$hessian
     }
   }##if(hessian.all==TRUE)
-  
+
   ##return result
   out <- list(res.best=res.best, res.all=res, summary=summary)
   class(out) <- "estimateSTmodel"
-  
+
   return( out )
 }##function estimate.STmodel
 
@@ -319,13 +329,13 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
 ##' @param ... Ignored additional arguments.
 ##' @return Nothing
 ##'
-##' @author Johan Lindström
+##' @author Johan Lindstr?m
 ##'
 ##' @examples
 ##'   ##load data
 ##'   data(est.mesa.model)
 ##'   print(est.mesa.model)
-##' 
+##'
 ##' @family estimateSTmodel methods
 ##' @method print estimateSTmodel
 ##' @export
@@ -364,7 +374,7 @@ print.estimateSTmodel <- function(x, ...){
     cat("Fixed parameters:\n")
     print(x$summary$x.fixed[!is.na(x$summary$x.fixed)])
   }
-  
+
   ##estimated parameters
   cat("\nEstimated parameters for all starting point(s):\n")
   print(x$summary$par.all)
@@ -384,7 +394,7 @@ print.estimateSTmodel <- function(x, ...){
 ##' @param ... Ignored additional arguments.
 ##' @return Estimated parameters.
 ##'
-##' @author Johan Lindström
+##' @author Johan Lindstr?m
 ##'
 ##' @examples
 ##'   ##load data
@@ -393,7 +403,7 @@ print.estimateSTmodel <- function(x, ...){
 ##'   coef(est.mesa.model)
 ##'   ##extract only covariance parameters
 ##'   coef(est.mesa.model, pars="cov")
-##' 
+##'
 ##' @family estimateSTmodel methods
 ##' @importFrom stats coef
 ##' @method coef estimateSTmodel
