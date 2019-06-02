@@ -78,7 +78,7 @@ processLUR <- function(STdata, LUR.in){
   }else if( is.list(LUR.in) ){
     ##already a list, make sure the length is right
     if( length(LUR.in)!=nt ){
-      stop(paste("Length of 'LUR.in', ", length(LUR.in),", " "does not match number of temporal trends, ", nt,
+      stop(paste("Length of 'LUR.in', ", length(LUR.in),", ", "does not match number of temporal trends, ", nt,
                  collapse = ""))
     }
     LUR <- LUR.in
