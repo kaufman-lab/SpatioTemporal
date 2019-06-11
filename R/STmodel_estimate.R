@@ -186,6 +186,15 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
       ##increase counter
       i.restart <- i.restart+1
     }##while(i.restart<=restart && !optim.done)
+	
+	##add standard deviations
+	par.sd <- try(sqrt(-diag(solve(res[[i]]$hessian))) )
+	
+	if(!is.numeric(par.sd)){
+	  res[[i]]$conv <- FALSE
+	  message("Hessian not positive definite -- trying next starting value.")
+	  next
+	}
     if( control$trace!=0 ){
       message("") ##spacing
     }
@@ -206,8 +215,6 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
                                      init=double(dimensions$nparam),
                                      tstat=double(dimensions$nparam))
      
-      ##add standard deviations
-      suppressWarnings( par.sd <- sqrt(-diag(solve(res[[i]]$hessian))) )
       ##initial value
       if( type!="f" ){
         par.type <- "par.cov"
