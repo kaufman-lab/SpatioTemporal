@@ -158,6 +158,13 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
                 err[[1]]) )
   }
   
+  #############
+  # J. Keller edit
+  # Define local version of the likelihood function, to use in calculating
+  # Hessians using numDeriv package
+  loglikeST.loc <- function(x) loglikeST(x, object)
+  ############
+  
   ##ensure that we are doing maximisation
   control$fnscale <- -1
   ##loop over starting values
@@ -171,7 +178,7 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
     while(i.restart<=restart && !conv[i]){
       try( res[[i]] <- optim(x.start, loglikeST, gr=loglikeSTGrad.loc,
                              STmodel=object, type=type, x.fixed=x.fixed,
-                             method=method, control=control, hessian=TRUE,
+                             method=method, control=control, hessian=FALSE,
                              lower=lower, upper=upper), silent=TRUE)
       if( all( !is.na(res[[i]]) ) ){
         ##optim done, let's see if we've converged and update starting point
@@ -186,6 +193,12 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
       ##increase counter
       i.restart <- i.restart+1
     }##while(i.restart<=restart && !optim.done)
+	
+	# Calculate Hessian using numDeriv package
+    #############
+	# J. Keller edit
+    res[[i]]$hessian <- numDeriv::hessian(loglikeST.loc, res[[i]]$par)
+    ###############	
 	
 	##add standard deviations
 	par.sd <- try(sqrt(-diag(solve(res[[i]]$hessian))) )

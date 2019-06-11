@@ -10,7 +10,7 @@ Description: Utilities that estimate, predict and cross-validate the
 Encoding: latin1
 Date: 2013-08-12
 Depends: R (>= 2.12.0), Matrix
-Imports: MASS
+Imports: MASS, numDeriv
 Suggests: maps, plotrix, fields
 Type: Package
 LazyLoad: yes
