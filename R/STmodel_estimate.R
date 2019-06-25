@@ -183,9 +183,6 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
       if( all( !is.na(res[[i]]) ) ){
         ##optim done, let's see if we've converged and update starting point
         x.start <- res[[i]]$par
-        ##compute convergence criteria
-        conv[i] <- (res[[i]]$convergence==0 &&
-                    all(eigen(res[[i]]$hessian)$value < -1e-10))
       }else{
         ##error occured in optim, break
         break
@@ -200,11 +197,16 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
     res[[i]]$hessian <- numDeriv::hessian(loglikeST.loc, res[[i]]$par)
     ###############	
 	
+	##compute convergence criteria
+        conv[i] <- (res[[i]]$convergence==0 &&
+                    all(eigen(res[[i]]$hessian)$value < -1e-10))
+	
+	
 	##add standard deviations
 	par.sd <- try(sqrt(-diag(solve(res[[i]]$hessian))) )
 	
 	if(!is.numeric(par.sd)){
-	  res[[i]]$conv <- FALSE
+	  conv[i] <- FALSE
 	  message("Hessian not positive definite -- trying next starting value.")
 	  next
 	}
