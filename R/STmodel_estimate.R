@@ -80,6 +80,12 @@
 ##' @param hessian.all If \code{type!="f"} computes hessian (and uncertainties)
 ##'   for both regression and \emph{log}-covariance parameters, not only for
 ##'   \emph{log}-covariance parameters. See \code{value} below.
+##' @param best.hessian.only If \code{TRUE} computes hessian only for the fit
+##'   with the best likelihood value. If that hessian is not positive definite, 
+##'   continue to compute hessians in decreasing order of likelihood 
+##'   until a positive definite hessian is found or until hessians for all fits 
+##'   are calculated. When TRUE, and multiple starting values are provided, computation
+##'   may be faster.
 ##' @param lower,upper,method Parameter bound and optimisation method,
 ##'   passed to \code{\link[stats:optim]{optim}}.
 ##' @param control A list of control parameters for the optimisation.
@@ -110,6 +116,7 @@
 ##' @export
 estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
                              h=1e-3, diff.type=1, hessian.all=FALSE,
+							 best.hessian.only=TRUE,
                              lower=-15, upper=15, method="L-BFGS-B",
                              control=list(trace=3, maxit=1000),
                              restart=0, ...){
@@ -147,8 +154,13 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
   ##attempt to fit the model for each of the provided starting values.
   res <- as.list( rep(NA, dim(x)[2]) )
   ##vector with convergence information and optimal values
-  conv <- rep(FALSE, dim(x)[2])
+  conv <- rep(NA, dim(x)[2]) #this will be TRUE only if there is model convergence from optim AND a positive definite hessian. 
+   #set to NA since hessian might not be calculated for all model fits  if best.hessian.only is TRUE and therefore conv may be unknown for suboptimal model fits
+  convergence <- rep(FALSE, dim(x)[2]) #just model convergence. this variable is really only used restart >0
   value <- rep(NA, dim(x)[2])
+  par.sd <- as.list(rep(NA, dim(x)[2]))
+  Ind <- NA #the index of the model with the highest likelihood of those where conv==TRUE
+  best_index <- NA #the index of the model with the highest likelihood regardless of convergence. used for res.best when all(!conv)
 
   ##make sure that likelihood evaluates
   err <- tryCatch( loglikeST(x[,1], STmodel=object, type=type,
@@ -167,7 +179,8 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
   
   ##ensure that we are doing maximisation
   control$fnscale <- -1
-  ##loop over starting values
+  
+  ##loop over starting values, optimize likelihood
   for(i in 1:dim(x)[2]){
     if( control$trace!=0 ){
       message( paste("Optimisation using starting value ",
@@ -175,13 +188,14 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
     }
     x.start <- x[,i]
     i.restart <- 0
-    while(i.restart<=restart && !conv[i]){
+    while(i.restart<=restart && !convergence[i]){
       try( res[[i]] <- optim(x.start, loglikeST, gr=loglikeSTGrad.loc,
                              STmodel=object, type=type, x.fixed=x.fixed,
                              method=method, control=control, hessian=FALSE,
                              lower=lower, upper=upper), silent=TRUE)
       if( all( !is.na(res[[i]]) ) ){
         ##optim done, let's see if we've converged and update starting point
+        convergence[i] <- res[[i]]$convergence==0
         x.start <- res[[i]]$par
       }else{
         ##error occured in optim, break
@@ -190,33 +204,92 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
       ##increase counter
       i.restart <- i.restart+1
     }##while(i.restart<=restart && !optim.done)
-	
-	# Calculate Hessian using numDeriv package
-    #############
-	# J. Keller edit
-    res[[i]]$hessian <- numDeriv::hessian(loglikeST.loc, res[[i]]$par)
-    ###############	
-	
-	##compute convergence criteria
-        conv[i] <- (res[[i]]$convergence==0 &&
-                    all(eigen(res[[i]]$hessian)$value < -1e-10))
-	
-	
-	##add standard deviations
-	  par.sd <- sqrt(-diag(tryCatch(solve(res[[i]]$hessian), error=function(e) rep(NA, length(res[[i]]$par)))))
-	if(!is.numeric(par.sd)){
-	  conv[i] <- FALSE
-	  message("Hessian not positive definite -- trying next starting value.")
-	  next
-	}
-    if( control$trace!=0 ){
-      message("") ##spacing
-    }
-    
+  }#for(i in 1:dim(x)[2])
+  
+
+  
+  for(i in 1:dim(x)[2]){    
     ##has optimisation finished with out failing?
     if( all( !is.na(res[[i]]) ) ){
       ##extract ML-value
       value[i] <- res[[i]]$value
+	}else{
+	  value[i] <- NA
+	}
+	
+	if(res[[i]]$convergence!=0 | is.na(value[i]) ){
+	  conv[i] <- FALSE
+	}
+  }
+  
+  if( all(is.na(res)) | all(is.na(value)) ){
+    stop("All optimisations failed, consider trying different starting values.")
+  }
+  
+  ##loop over model fits, in order of likelihood value, and calculate hessians until a positive definite one is found. then break.
+   for(i in order(value,decreasing=TRUE) ){
+   
+     #if conv was just set to FALSE due to a non-converged or failed optim, skip hessian calculation (at least for now...see below)
+     if(!is.na(conv[i])){ 
+	   if(!conv[i]){
+	     next
+	   }
+	 }
+	    
+	res[[i]]$hessian <- numDeriv::hessian(loglikeST.loc, res[[i]]$par)
+	
+	##compute convergence criteria
+    conv[i] <- (res[[i]]$convergence==0 && 
+	              all(eigen(res[[i]]$hessian)$value < -1e-10))
+				  
+	##add standard deviations
+	par.sd[[i]] <- sqrt(-diag(tryCatch(solve(res[[i]]$hessian), error=function(e) rep(NA, length(res[[i]]$par)))))
+	
+	if(!is.numeric(par.sd[[i]]) | all(is.na(par.sd[[i]])) ){
+	  conv[i] <- FALSE
+	  message("Hessian not positive definite -- calculating hessian for next starting value.")
+	}
+    if( control$trace!=0 ){
+      message("") ##spacing
+    }
+   
+   if(conv[i]){ 
+     if(is.na(Ind)) Ind <- i #Ind will be used later to select res.best. if this for loop concludes with conv[i] never being true, Ind will stay NA
+     if(best.hessian.only) break #when best.hessian.only is TRUE, stop computing hessians if conv is TRUE. This may save computation time.
+	 #note that if best.hessian.only is TRUE, at this point conv may be left as NA for some fits with suboptimal likelihood values.
+   }	
+  }#for(i in order(sapply(res,`[[`,"value"),decreasing=TRUE) )
+  
+  best_index <- which.max(value) #model with the highest likelihood overall, not considering convergence
+  
+  if(!any(conv)){
+    warning("No models converged")
+	
+	#at this point, if best.hessian.only is TRUE if convergence were nonzero for all fits (ie the status returned from optim), 
+    #then conv would FALSE for all fits and hessian would not have been calculated at for any starting parameters 
+	#calculate it for the best model:
+    
+	if(is.null(res[[best_index]]$hessian)){
+	  res[[best_index]]$hessian <- numDeriv::hessian(loglikeST.loc, res[[best_index]]$par)
+	  par.sd[[best_index]] <- sqrt(-diag(tryCatch(solve(res[[best_index]]$hessian), error=function(e) rep(NA, length(res[[best_index]]$par)))))
+	}    
+  }
+  
+  if(any(conv) & !conv[best_index]) warning("there exist non-converged optimizations with better likelihood values than res.best.")  
+
+  #make par.sd a vector of NAs of the correct length for fits where hessian has not been calculated 
+  #(ie if par.sd is still NA and length 1 as originally defined).
+  for(i in 1:length(par.sd)){
+    if(length(par.sd[[i]])==1){
+     if(is.na(par.sd[[i]])) par.sd[[i]] <- rep(NA, length(res[[i]]$par))
+    }
+  }
+  
+    
+  #loop over model fits, store parameters	
+  for(i in 1:dim(x)[2]){    
+    ##has optimisation finished with out failing?
+    if( all( !is.na(res[[i]]) ) ){
 
       ##add convergence and initial parameters
       res[[i]]$conv <- conv[i]
@@ -240,7 +313,7 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
       res[[i]][[par.type]]$par <- res[[i]][[par.type]]$fixed <- x.fixed
       res[[i]][[par.type]]$par[is.na(x.fixed)] <- res[[i]]$par
       ##standard error
-      res[[i]][[par.type]]$sd[is.na(x.fixed)] <- par.sd
+      res[[i]][[par.type]]$sd[is.na(x.fixed)] <- par.sd[[i]]
       
       if( type!="f" ){
         ##compute regression parameters
@@ -272,13 +345,17 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
     }##if(all(!is.na(res[[i]])))
   }##for(i in 1:dim(x)[2])
 
-  if( all(is.na(res)) ){
-    stop("All optimisations failed, consider trying different starting values.")
+  ##pick out the converged models the one with the best likelihood value (Ind), otherwise just pick the model with the best likelihood (best_index)
+  if(!is.na(Ind)){
+    chosen_index <- Ind
+  }else{
+    chosen_index <- best_index
   }
+  res.best <- res[[chosen_index]]
 
   ##extract summaries of the optimisations
   status <- data.frame(value=value, convergence=logical(length(res)),
-                       conv=(conv==1))
+                       conv=(conv==1),res.best.model=1:length(value)==chosen_index)
   par.cov <- matrix(NA, dimensions$nparam.cov, length(res))
   par.all <- matrix(NA, dimensions$nparam, length(res))
   for(i in 1:length(res)){
@@ -292,18 +369,9 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
   rownames(par.all) <- loglikeSTnames(object, all=TRUE)
   rownames(par.cov) <- loglikeSTnames(object, all=FALSE)
   
-  ##pick out the converged option with the best value
-  Ind.overall <- which.max(value)
-  if(any(conv==TRUE)){
-    ##mark no-converged values as NA to avoid picking these
-    value[!conv] <- NA
-  }
-  ##extract the best value
-  Ind <- which.max(value)
-  res.best <- res[[Ind]]
   
   ##collect status results
-  summary <- list(status=status, par.all=par.all, par.cov=par.cov, x.fixed=x.fixed)
+  summary <- list(status=status, par.all=par.all, par.cov=par.cov, x.fixed=x.fixed,best.hessian.only=best.hessian.only)
   
   if(hessian.all==TRUE){
     if(type!="f"){
@@ -355,7 +423,8 @@ print.estimateSTmodel <- function(x, ...){
   stCheckClass(x, "estimateSTmodel", name="x")
 
   N.opt <- length(x$res.all)
-  N.conv <- sum(x$summary$status$conv)
+  N.conv <- sum(x$summary$status$conv,na.rm=TRUE)
+  N.conv.unknown <- is.na(x$summary$status$conv)
   N.failed <- sum( is.na(x$summary$status$value) )
   I.best <- which.max( x$summary$status$value )
   if( N.conv>0 ){
@@ -363,10 +432,29 @@ print.estimateSTmodel <- function(x, ...){
     tmp[!x$summary$status$conv] <- NA
     I.best.conv <- which.max(tmp)
   }
-
-  cat("Optimisation for STmodel with", N.opt, "starting points.\n")
-  cat("  Results:", N.conv, "converged,", N.opt-N.failed-N.conv,
+  
+  #if null, output standard output for backwards compatibility with older model objects. 
+  if(is.null(x$summary$best.hessian.only)){
+    best.hessian.only.output <- FALSE
+  }else{
+    if(x$summary$best.hessian.only){
+	  best.hessian.only.output <- TRUE
+	}else{
+	  best.hessian.only.output <- FALSE
+	}
+  }
+  
+  
+  if(best.hessian.only.output){
+    cat("Optimisation for STmodel with", N.opt, "starting points.\n")
+	cat("  Results:", if(N.conv){"1 or more models converged"}else{"No models converged"}, N.conv.unknown,"convergence unknown due to best.hessian.only=TRUE",
+	N.failed,"failed.\n")
+  }else{
+    cat("Optimisation for STmodel with", N.opt, "starting points.\n")
+    cat("  Results:", N.conv, "converged,", N.opt-N.failed-N.conv,
       "not converged,", N.failed,"failed.\n")
+  }
+  
   cat("  Best result for starting point", I.best)
   if( x$summary$status$conv[I.best] ){
     cat(", optimisation has converged\n")
