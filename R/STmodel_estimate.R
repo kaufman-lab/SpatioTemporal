@@ -203,8 +203,7 @@ estimate.STmodel <- function(object, x, x.fixed=NULL, type="p",
 	
 	
 	##add standard deviations
-	par.sd <- try(sqrt(-diag(solve(res[[i]]$hessian))) )
-	
+	  par.sd <- sqrt(-diag(tryCatch(solve(res[[i]]$hessian), error=function(e) rep(NA, length(res[[i]]$par)))))
 	if(!is.numeric(par.sd)){
 	  conv[i] <- FALSE
 	  message("Hessian not positive definite -- trying next starting value.")
