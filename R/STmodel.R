@@ -54,7 +54,7 @@ createSTmodel <- function(STdata, LUR=NULL, ST=NULL,
                             random.effect=FALSE),
                           locations=list(coords=c("x","y"), long.lat=NULL,
                             coords.beta=NULL, coords.nu=NULL, others=NULL),
-                          strip=FALSE, scale=FALSE, scale.covars=NULL){
+                          strip=FALSE, scale=FALSE, scale.covars=NULL,predict=FALSE){
   ##check class belonging
   stCheckClass(STdata, "STdata", name="STdata")
 
@@ -174,8 +174,9 @@ createSTmodel <- function(STdata, LUR=NULL, ST=NULL,
     }
   }
   ##compute distance matrix and nt
+  if (!predict){
   STmodel <- createSTmodelInternalDistance(STmodel)
-  
+  }
   ##drop SpatioTemporal, has been replaced by other things
   STmodel$SpatioTemporal <- NULL
   STmodel$covars <- NULL
