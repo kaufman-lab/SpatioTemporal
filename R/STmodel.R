@@ -38,7 +38,9 @@
 ##' @param scale.covars list with elements \code{mean} and \code{sd} giving the
 ##'   mean and standard deviation to use when scaling the covariates. Computed
 ##'   from \code{STdata$covars} if not given.
-##' 
+##' @param calc_dist_matrix whether to calculate the cross-distance matrix for all
+##'   locations.
+##'
 ##' @return A \code{STmodel} object, see \code{\link{mesa.model}} for an example.
 ##' 
 ##' @example Rd_examples/Ex_createSTmodel.R
@@ -54,7 +56,7 @@ createSTmodel <- function(STdata, LUR=NULL, ST=NULL,
                             random.effect=FALSE),
                           locations=list(coords=c("x","y"), long.lat=NULL,
                             coords.beta=NULL, coords.nu=NULL, others=NULL),
-                          strip=FALSE, scale=FALSE, scale.covars=NULL,predict_indicator=FALSE){
+                          strip=FALSE, scale=FALSE, scale.covars=NULL,calc_dist_matrix=TRUE){
   ##check class belonging
   stCheckClass(STdata, "STdata", name="STdata")
 
@@ -174,7 +176,7 @@ createSTmodel <- function(STdata, LUR=NULL, ST=NULL,
     }
   }
   ##compute distance matrix and nt
-  if (!predict_indicator){
+  if (calc_dist_matrix){
   STmodel <- createSTmodelInternalDistance(STmodel)
   }
   ##drop SpatioTemporal, has been replaced by other things
