@@ -268,7 +268,7 @@ predict.STmodel <- function(object, x, STdata=NULL, Nmax=1000, only.pars=FALSE,
                               cov.beta=object$cov.beta, cov.nu=cov.nu,
                               locations=object$locations.list,
                               scale=!is.null(object$scale.covars),
-                              scale.covars=object$scale.covars)
+                              scale.covars=object$scale.covars,calc_dist_matrix=FALSE)
     }else{
       ##STdata is an STmodel object ->
       ##test for consistent covariates and scaling (only equal scaling allowed).

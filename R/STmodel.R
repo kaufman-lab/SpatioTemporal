@@ -38,12 +38,14 @@
 ##' @param scale.covars list with elements \code{mean} and \code{sd} giving the
 ##'   mean and standard deviation to use when scaling the covariates. Computed
 ##'   from \code{STdata$covars} if not given.
-##' 
+##' @param calc_dist_matrix whether to calculate the square matrix for all
+##'   locations.
+##'
 ##' @return A \code{STmodel} object, see \code{\link{mesa.model}} for an example.
 ##' 
 ##' @example Rd_examples/Ex_createSTmodel.R
 ##' 
-##' @author Johan Lindström
+##' @author Johan LindstrÃ¶m
 ##' @family STmodel methods
 ##' @family STmodel functions
 ##' @family STdata functions
@@ -54,7 +56,7 @@ createSTmodel <- function(STdata, LUR=NULL, ST=NULL,
                             random.effect=FALSE),
                           locations=list(coords=c("x","y"), long.lat=NULL,
                             coords.beta=NULL, coords.nu=NULL, others=NULL),
-                          strip=FALSE, scale=FALSE, scale.covars=NULL){
+                          strip=FALSE, scale=FALSE, scale.covars=NULL,calc_dist_matrix=TRUE){
   ##check class belonging
   stCheckClass(STdata, "STdata", name="STdata")
 
@@ -174,8 +176,9 @@ createSTmodel <- function(STdata, LUR=NULL, ST=NULL,
     }
   }
   ##compute distance matrix and nt
+  if (calc_dist_matrix){
   STmodel <- createSTmodelInternalDistance(STmodel)
-  
+  }
   ##drop SpatioTemporal, has been replaced by other things
   STmodel$SpatioTemporal <- NULL
   STmodel$covars <- NULL
@@ -209,7 +212,7 @@ createSTmodel <- function(STdata, LUR=NULL, ST=NULL,
 ##' ##print basic information regarding obs, locations, dates, etc
 ##' print(mesa.model)
 ##'
-##' @author Johan Lindström
+##' @author Johan LindstrÃ¶m
 ##' 
 ##' @family STmodel methods
 ##' @method print STmodel
@@ -277,7 +280,7 @@ print.STmodel <- function(x, type=x$locations$type, ...){
 ##' ##Summary of data fields.
 ##' summary(mesa.model)
 ##'
-##' @author Johan Lindström
+##' @author Johan LindstrÃ¶m
 ##' 
 ##' @family STmodel methods
 ##' @method summary STmodel
@@ -322,7 +325,7 @@ summary.STmodel <- function(object, type=object$covars$type, ...){
 ##' @param ... Ignored additional arguments.
 ##' @return Nothing
 ##'
-##' @author Johan Lindström
+##' @author Johan LindstrÃ¶m
 ##' 
 ##' @family STmodel methods
 ##' @method print summary.STmodel
