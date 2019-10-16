@@ -38,14 +38,14 @@
 ##' @param scale.covars list with elements \code{mean} and \code{sd} giving the
 ##'   mean and standard deviation to use when scaling the covariates. Computed
 ##'   from \code{STdata$covars} if not given.
-##' @param calc_dist_matrix whether to calculate the cross-distance matrix for all
+##' @param calc_dist_matrix whether to calculate the square matrix for all
 ##'   locations.
 ##'
 ##' @return A \code{STmodel} object, see \code{\link{mesa.model}} for an example.
 ##' 
 ##' @example Rd_examples/Ex_createSTmodel.R
 ##' 
-##' @author Johan Lindström
+##' @author Johan LindstrÃ¶m
 ##' @family STmodel methods
 ##' @family STmodel functions
 ##' @family STdata functions
@@ -212,7 +212,7 @@ createSTmodel <- function(STdata, LUR=NULL, ST=NULL,
 ##' ##print basic information regarding obs, locations, dates, etc
 ##' print(mesa.model)
 ##'
-##' @author Johan Lindström
+##' @author Johan LindstrÃ¶m
 ##' 
 ##' @family STmodel methods
 ##' @method print STmodel
@@ -280,7 +280,7 @@ print.STmodel <- function(x, type=x$locations$type, ...){
 ##' ##Summary of data fields.
 ##' summary(mesa.model)
 ##'
-##' @author Johan Lindström
+##' @author Johan LindstrÃ¶m
 ##' 
 ##' @family STmodel methods
 ##' @method summary STmodel
@@ -325,7 +325,7 @@ summary.STmodel <- function(object, type=object$covars$type, ...){
 ##' @param ... Ignored additional arguments.
 ##' @return Nothing
 ##'
-##' @author Johan Lindström
+##' @author Johan LindstrÃ¶m
 ##' 
 ##' @family STmodel methods
 ##' @method print summary.STmodel
