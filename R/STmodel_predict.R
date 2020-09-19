@@ -762,7 +762,7 @@ predict.STmodel <- function(object, x, STdata=NULL, Nmax=1000, only.pars=FALSE,
     
     ##create full cross-covariance matrix for all the observations
     sigma.B.full.C <- Funobs[Ind,,drop=FALSE] %*% sigma.B.C
-    sigma.B.full.C <- as.matrix(sigma.B.full.C%*%t(Fobs))
+    sigma.B.full.C <- t(as.matrix(Fobs%*%t(sigma.B.full.C)))
     ##parameter order is sill, nugget, range (always predict with nugget=0)
     sigma.nu.C <- makeSigmaNu(cov.pars.nu$pars, dist = cross.D.nu,
                               type = object$cov.nu$covf, nugget = 0,
