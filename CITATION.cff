@@ -1,0 +1,22 @@
+cff-version: 1.0.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Lindström"
+  given-names: "Johan"
+- family-names: "Szpiro"
+  given-names: "Adam A"
+- family-names: "Sampson"
+  given-names: "Paul D"
+- family-names: "Bergen"
+  given-names: "Silas"
+- family-names: "Oron"
+  given-names: "Assaf"
+- family-names: "Young"
+  given-names: "Michael"
+- family-names: "Knutson"
+  given-names: "Victoria"
+title: "SpatioTemporal"
+version: 1.0.0
+doi: 
+date-released: 2023-06-13
+url: "https://github.com/kaufman-lab/SpatioTemporal"
