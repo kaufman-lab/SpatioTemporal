@@ -34,7 +34,7 @@
 ##' 
 ##' @example Rd_examples/Ex_loglikeST.R
 ##'
-##' @author Johan Lindström
+##' @author Johan LindstrÃ¶m
 ##' 
 ##' @family STmodel functions
 ##' @family likelihood functions
@@ -99,11 +99,11 @@ loglikeST <- function(x=NULL, STmodel, type="p", x.fixed=NULL){
   ##storing in-place to conserve memory
   sigma.B <- try( makeCholBlock(sigma.B, n.blocks=dimensions$m),
                  silent=TRUE)
-  if(class(sigma.B)=="try-error"){
+  if(class(sigma.B)[1]=="try-error"){
     return(-.Machine$double.xmax)
   }
   sigma.nu <- try( chol(sigma.nu), silent=TRUE)
-  if(class(sigma.nu)=="try-error"){
+  if(class(sigma.nu)[1]=="try-error"){
     return(-.Machine$double.xmax)
   }
   ##loglikelihood calculations follow:
@@ -149,7 +149,7 @@ loglikeST <- function(x=NULL, STmodel, type="p", x.fixed=NULL){
   sigma.B.Y <- as.matrix( t(F) %*% sigma.nu %*% F) + sigma.B
   ##calculate cholesky factor of inv(sigma.B|Y)
   sigma.B.Y <- try( chol(sigma.B.Y), silent=TRUE)
-  if( class(sigma.B.Y)=="try-error" ){
+  if( class(sigma.B.Y)[1]=="try-error" ){
     return(-.Machine$double.xmax)
   }
 
@@ -181,7 +181,7 @@ loglikeST <- function(x=NULL, STmodel, type="p", x.fixed=NULL){
       calc.X.iS.X(STmodel$LUR, iS.X)
     ##calculate cholesky factor of inv(sigma.alpha|Y)
     i.sigma.alpha.Y <- try( chol(i.sigma.alpha.Y), silent=TRUE)
-    if(class(i.sigma.alpha.Y)=="try-error"){
+    if(class(i.sigma.alpha.Y)[1]=="try-error"){
       return(-.Machine$double.xmax)
     }
     if(type=="r"){
@@ -209,7 +209,7 @@ loglikeST <- function(x=NULL, STmodel, type="p", x.fixed=NULL){
                         t(M.hat.2) %*% M.hat.2)
       ##calculate cholesky factor of M.sigma.hat.M
       M.sigma.hat.M <- try( chol(M.sigma.hat.M), silent=TRUE)
-      if(class(M.sigma.hat.M)=="try-error"){
+      if(class(M.sigma.hat.M)[1]=="try-error"){
         return(-.Machine$double.xmax)
       }
       ##-log(det( M.sigma.hat.M )^.5)
