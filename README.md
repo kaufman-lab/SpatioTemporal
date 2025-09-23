@@ -8,4 +8,4 @@ This repo has been archived, but you can still install the package from this rep
 Additionally, the name has been changed to "Spatiotemporal.legacy"
 in order to allow you to install it alongside the development version. If for 
 some reason you need to install it with its original name, you can do so with
-`remotes::install_github('/kaufman-lab/SpatioTemporal@0df042c')`. 
+`remotes::install_github('/kaufman-lab/SpatioTemporal', ref = '0df042c')`. 
