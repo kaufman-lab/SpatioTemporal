@@ -1,11 +1,11 @@
 ##' Package for spatio-temporal modelling. Contains functions that estimate,
 ##' simulate and predict from the model described in (Szpiro et.al., 2010;
-##' Sampson et.al., 2011; Lindström et.al., 2010). The package also
+##' Sampson et.al., 2011; Lindstrï¿½m et.al., 2010). The package also
 ##' contains functions that handle missing data SVD in accordance with
 ##' (Fuentes et.al. 2006).
 ##' \cr
 ##' \tabular{ll}{
-##'   Package: \tab SpatioTemporal\cr
+##'   Package: \tab SpatioTemporal.legacy\cr
 ##'   Type: \tab Package\cr
 ##'   Version: \tab 1.1.7\cr
 ##'   Date: \tab 2013-08-12\cr
@@ -17,8 +17,8 @@
 ##' 
 ##' @title Spatio-Temporal Modelling
 ##' 
-##' @name SpatioTemporal-package
-##' @aliases SpatioTemporal-package SpatioTemporal
+##' @name SpatioTemporal.legacy-package
+##' @aliases SpatioTemporal.legacy-package SpatioTemporal.legacy
 ##' @docType package
 ##' @note Data used in the examples has been provided by the Multi-Ethnic Study
 ##' of Atherosclerosis and Air Pollution (MESA Air). Details regarding the data
@@ -31,7 +31,7 @@
 ##' and therefore does not necessarily reflect the views of the Agency and no
 ##' official endorsement should be inferred.
 ##' \cr
-##' Travel for J. Lindström has been paid by STINT (The
+##' Travel for J. Lindstrï¿½m has been paid by STINT (The
 ##' Swedish Foundation for International Cooperation in Research and Higher
 ##' Education) Grant IG2005-2047.
 ##' \cr
@@ -191,7 +191,7 @@
 ##'   \item{0.1.0}{First released version, short course at TIES-2010}
 ##' }
 ##' 
-##' @author Johan Lindström, Adam Szpiro, Paul D. Sampson,
+##' @author Johan Lindstrï¿½m, Adam Szpiro, Paul D. Sampson,
 ##' Silas Bergen, Assaf P. Oron
 ##' 
 ##' @references
@@ -204,9 +204,9 @@
 ##' 
 ##' M. Fuentes, P. Guttorp, and P. D. Sampson. (2006) Using Transforms to
 ##'  Analyze Space-Time Processes in Statistical methods for spatio-temporal
-##'  systems (B. Finkenstädt, L. Held, V. Isham eds.) 77-150
+##'  systems (B. Finkenstï¿½dt, L. Held, V. Isham eds.) 77-150
 ##' 
-##' J. Lindström, A. Szpiro, P. D. Sampson, L. Sheppard, A. Oron,
+##' J. Lindstrï¿½m, A. Szpiro, P. D. Sampson, L. Sheppard, A. Oron,
 ##'   M. Richards, and T. Larson T. (2010) A flexible spatio-temmporal model for
 ##'   air pollution: allowing for spatio-temporal covariates. Berkeley Electronic
 ##'   Press, University of Washington Biostatistics Working Paper Series, No. 370.
@@ -217,7 +217,7 @@
 ##'   concentrations with complex spatio-temporal dependencies. Environmetrics:
 ##'   21, 606-631.
 ##'
-##' P. D. Sampson, A. Szpiro, L. Sheppard, J. Lindström, J. D.  Kaufman. (2011)
+##' P. D. Sampson, A. Szpiro, L. Sheppard, J. Lindstrï¿½m, J. D.  Kaufman. (2011)
 ##'   Pragmatic Estimation of a Spatio-temporal Air Quality Model with Irregular
 ##'   Monitoring Data. Atmospheric Environment: 45(36), 6593-6606.
 ##' 
